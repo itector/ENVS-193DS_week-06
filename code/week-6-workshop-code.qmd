@@ -53,3 +53,74 @@ use "skimr" package to quickly glimpse the data:
 ```{r glimpse-of-data-using-skimr}
 skim(whales)
 ```
+
+# wrangling
+
+```{r whales-wrangling}
+whales_clean <- whales %>%
+  # creating new columns for years and months
+  # extract component of the data frame
+  mutate(year_new = lubridate::year(date)) %>% 
+  # extracting the month from the preexisting date column
+  mutate(month_new = lubridate::month(date)) %>% 
+  # create a new column for month names
+  mutate(month_name = case_when(
+    # in the case of this, do this
+    # when the month_new matches 2, say that it is february
+    month_new == 2 ~ "February",
+    month_new == 3 ~ "March",
+    month_new == 4 ~ "April",
+    month_new == 5 ~ "May"
+  ), 
+  # R automatically puts things in alphabetical order, we want it to go in order of month
+  # further adjust month name column
+  # telling R that month_name is a considerate factor
+  month_name = forcats::as_factor(month_name),
+  # order of the factors in desired order, fct_relevel changes the leveling of the factors
+  month_name = forcats::fct_relevel(month_name, "February", "March", "April", "May")
+  ) %>% 
+  # next cleaning step, creating a new condition column
+  mutate(condition_new = case_when(
+    # str_detect allows to detect the presence of absence of a match
+    # when does some observation match "Good" or "Fair", doesnt have to match the whole thing, just has to include it
+    # you put stringr in front of it to show what package its from
+    stringr::str_detect(condition, "Excellent") ~ "excellent",
+    str_detect(condition, "Good") ~ "good",
+    str_detect(condition, "Fair") ~ "fair",
+    str_detect(condition, "Poor") ~ "poor"
+  ))
+```
+
+# create a plot and insert an image
+
+```{r whales-2019}
+# create a new dara frame to filter 2019 observations
+whales_2019 <- whales_clean %>% 
+  filter(year_new == 2019)
+
+# read in the whale png as a raster
+# magick image read takes the file path we put, the same way we read in a package
+whale_image <- magick::image_read(
+  here("images", "noaa-gray-whale.png")
+) %>% 
+  # turn it into a raster
+  as.raster()
+
+# make a boxplot
+whales_2019_boxplot <- ggplot(data = whales_2019, aes(x = month_name, y = total)) +
+  geom_boxplot(aes(fill = month_name)) +
+  # creating litter points, but controlling them by using geom_point
+  geom_point(position = position_jitter(width = 0.3, height = 0, seed = 1)) +
+  #manually adjust these colors
+  scale_fill_manual(values = natparks.pals("RockyMtn", 4)) +
+  # add the image of the whale
+  # annotation raster expects arguments for where your whale is gonna go
+  annotation_raster(whale_image, xmin = 2.5, xmax = 4.5, ymin = 30, ymax = 60)
+
+whales_2019_boxplot
+```
+
+```{r interactive-plot}
+# ggplotly changes a ggplot to being a plotly plot
+ggplotly(whales_2019_boxplot)
+```
