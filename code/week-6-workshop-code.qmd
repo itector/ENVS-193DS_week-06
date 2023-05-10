@@ -1,0 +1,55 @@
+---
+title: "Workshop 6"
+author: "izzy textor""
+format: pdf
+editor: visual
+---
+
+## Week 6 in-class code
+
+# Set up
+
+loading in packages
+
+```{r package-set-up}
+library(tidyverse) # general usage
+library(here) # organize folders
+library(naniar) # missing data visualization
+
+
+install.packages("skimr") # quick glimpses at data
+install.packages("plotly") # interactive plots
+install.packages("magick") # insert images into plots
+install.packages("NatParksPalettes") #one example of a color palette package
+install.packages("wesanderson") # another color palette package
+install.packages("patchwork") # put plots together
+library(skimr)
+library(plotly)
+library(magick)
+library(NatParksPalettes)
+library(wesanderson)
+library(patchwork)
+```
+
+# load in the data
+
+```{r loading-data}
+# create a new object called whales
+# read in the whales data
+whales <- read_csv(
+  # telling our computer to read folder to the file
+  here("data", "Graywhale_watching_2007_2019.csv")
+)
+```
+
+look at missing data:
+
+```{r missing-data-visualization}
+gg_miss_var(whales)
+```
+
+use "skimr" package to quickly glimpse the data:
+
+```{r glimpse-of-data-using-skimr}
+skim(whales)
+```
